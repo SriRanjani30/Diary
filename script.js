@@ -1,92 +1,92 @@
-document.getElementById('entryForm').addEventListener('submit', function(event) {
-    event.preventDefault();
+// script.js
 
-    const date = document.getElementById('date').value;
-    const time = document.getElementById('time').value;
-    const tags = document.getElementById('tags').value;
-    const content = document.getElementById('content').value;
-
-    if (!date || !time || !content || !tags) return;
-
-    const entry = {
-        date,
-        time,
-        tags: tags.split(',').map(tag => tag.trim()),
-        content,
-        completed: false
-    };
-
-    let entries = JSON.parse(localStorage.getItem('entries')) || [];
-    entries.push(entry);
-    localStorage.setItem('entries', JSON.stringify(entries));
-
-    document.getElementById('entryForm').reset();
-    displayEntries();
-});
-
-document.getElementById('search').addEventListener('input', displayEntries);
-document.getElementById('clearSearch').addEventListener('click', function() {
-    document.getElementById('search').value = '';
-    displayEntries();
-});
-
-document.getElementById('clearForm').addEventListener('click', function() {
-    document.getElementById('entryForm').reset();
-});
-
-function displayEntries() {
-    const searchQuery = document.getElementById('search').value.toLowerCase();
-    const entries = JSON.parse(localStorage.getItem('entries')) || [];
-    const entriesDiv = document.getElementById('entries');
-    entriesDiv.innerHTML = '';
-
-    entries.sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
-
-    entries.forEach((entry, index) => {
-        if (entry.date.toLowerCase().includes(searchQuery) || entry.time.toLowerCase().includes(searchQuery) || entry.content.toLowerCase().includes(searchQuery) || entry.tags.some(tag => tag.toLowerCase().includes(searchQuery))) {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'entry';
-            entryDiv.innerHTML = `
-                <div class="entry-header">
-                    <strong>${entry.date} ${entry.time}</strong>
-                    <span>${entry.tags.join(', ')}</span>
-                    <div>
-                        <button class="icon-button" onclick="editEntry(${index})"><i class="fas fa-edit"></i>Edit</button>
-                        <button class="icon-button" onclick="deleteEntry(${index})"><i class="fas fa-trash-alt"></i>Delete</button>
-                        <button class="icon-button" onclick="toggleComplete(${index})"><i class="${entry.completed ? 'fas fa-check-square' : 'far fa-square'}"></i>Complete</button>
-                    </div>
-                </div>
-                <p>${entry.content}</p>
-            `;
-            entriesDiv.appendChild(entryDiv);
+document.addEventListener('DOMContentLoaded', () => {
+    const entryForm = document.getElementById('entryForm');
+    const entriesContainer = document.getElementById('entries');
+    const searchInput = document.getElementById('search');
+    const clearFormButton = document.getElementById('clearForm');
+    const clearSearchButton = document.getElementById('clearSearch');
+    
+    // Handle form submission
+    entryForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const tags = document.getElementById('tags').value;
+        const content = document.getElementById('content').value;
+        
+        if (date && time && tags && content) {
+            const entry = createEntry(date, time, tags, content);
+            entriesContainer.prepend(entry);
+            entryForm.reset();
         }
     });
-}
+    
+    // Handle form clear button
+    clearFormButton.addEventListener('click', () => {
+        entryForm.reset();
+    });
+    
+    // Handle search input
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        filterEntries(query);
+    });
 
-function deleteEntry(index) {
-    let entries = JSON.parse(localStorage.getItem('entries')) || [];
-    entries.splice(index, 1);
-    localStorage.setItem('entries', JSON.stringify(entries));
-    displayEntries();
-}
-
-function editEntry(index) {
-    let entries = JSON.parse(localStorage.getItem('entries')) || [];
-    const entry = entries[index];
-
-    document.getElementById('date').value = entry.date;
-    document.getElementById('time').value = entry.time;
-    document.getElementById('tags').value = entry.tags.join(', ');
-    document.getElementById('content').value = entry.content;
-
-    deleteEntry(index);
-}
-
-function toggleComplete(index) {
-    let entries = JSON.parse(localStorage.getItem('entries')) || [];
-    entries[index].completed = !entries[index].completed;
-    localStorage.setItem('entries', JSON.stringify(entries));
-    displayEntries();
-}
-
-window.onload = displayEntries;
+    // Handle clear search button
+    clearSearchButton.addEventListener('click', () => {
+        searchInput.value = '';
+        filterEntries('');
+    });
+    
+    // Create a new diary entry
+    function createEntry(date, time, tags, content) {
+        const entry = document.createElement('div');
+        entry.classList.add('entry');
+        
+        const header = document.createElement('div');
+        header.classList.add('entry-header');
+        
+        const dateTime = document.createElement('strong');
+        dateTime.textContent = `${date} ${time}`;
+        
+        const entryTags = document.createElement('span');
+        entryTags.textContent = tags;
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('icon-button');
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+        deleteButton.addEventListener('click', () => {
+            entry.remove();
+        });
+        
+        header.appendChild(dateTime);
+        header.appendChild(entryTags);
+        header.appendChild(deleteButton);
+        
+        const entryContent = document.createElement('p');
+        entryContent.textContent = content;
+        
+        entry.appendChild(header);
+        entry.appendChild(entryContent);
+        
+        return entry;
+    }
+    
+    // Filter entries based on search query
+    function filterEntries(query) {
+        const entries = entriesContainer.getElementsByClassName('entry');
+        Array.from(entries).forEach(entry => {
+            const dateTime = entry.querySelector('.entry-header strong').textContent.toLowerCase();
+            const tags = entry.querySelector('.entry-header span').textContent.toLowerCase();
+            const content = entry.querySelector('p').textContent.toLowerCase();
+            
+            if (dateTime.includes(query) || tags.includes(query) || content.includes(query)) {
+                entry.style.display = '';
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+    }
+});
