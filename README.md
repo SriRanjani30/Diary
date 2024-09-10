@@ -5,3 +5,5 @@
 5. Run "diary.html" and the diary will open in your browser.
 
 ![Screenshot (3473)](https://github.com/user-attachments/assets/072c4ec8-4ce9-4eac-abfa-7b975e4c3e7e)
+
+https://sriranjani30.github.io/Dairy/
